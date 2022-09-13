@@ -72,9 +72,9 @@ local function load_settings(path)
     return config
 end
 
-local function save_settings(pwd, command)
+local function save_settings(pwd, props)
     local config = load_settings(cache_config)
-    config[pwd] = command
+    config[pwd] = props
     -- print('Saving')
     log('Config:', vim.fn.json_encode(config))
     write_config(cache_config, config)
@@ -89,7 +89,8 @@ end
 -- Binding to command
 local function bind_command(settings)
     local pwd = vim.fn.getcwd()
-    local command = settings[pwd]
+    local command = settings[pwd].cmd
+    local key = settings[pwd].key
     if not command then
         -- log('Can\'t bind command. Pwd:', pwd)
         BindRunRunner = function()
@@ -99,7 +100,7 @@ local function bind_command(settings)
         BindRunRunner = get_runner(command)
     end
 
-    vim.api.nvim_set_keymap('n', '<F5>', ':lua BindRunRunner()<CR>', opts)
+    vim.api.nvim_set_keymap('n', key, ':lua BindRunRunner()<CR>', opts)
 end
 
 local function bind()
@@ -112,9 +113,14 @@ end
 vim.api.nvim_create_user_command('BindRunner', function()
     print('BindRunner propt')
     local command = vim.split(vim.fn.input 'Command: ', ' ')
+    local key = vim.fn.input 'Key: '
     print(' ')
+    if key == '' then
+        key = '<F5>'
+        print('Default key is used:', key)
+    end
     local pwd = vim.fn.getcwd()
-    local settings = save_settings(pwd, command)
+    local settings = save_settings(pwd, { cmd = command, key = key })
     bind_command(settings)
 end, {})
 
