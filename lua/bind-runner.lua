@@ -1,9 +1,9 @@
 local M = {}
 
-local Path = require("plenary.path")
-local data_path = vim.fn.stdpath("data")
-local cache_config = string.format("%s/bind_runnner.json", data_path)
-local buffer_name = 'runner_output'
+local Path = require('plenary.path')
+local data_path = vim.fn.stdpath('data')
+local cache_config = string.format('%s/bind_runnner.json', data_path)
+local buffer_name = '[runner_output]'
 local opts = { noremap = true, silent = true }
 
 
@@ -20,13 +20,13 @@ local function get_output_buffer()
             'buftype=nofile bufhidden=wipe noswapfile', buffer_name)
         vim.api.nvim_command(split_cmd)
         bufnr = vim.fn.bufnr(buffer_name)
-        log("Buffer created. Buffer number:", bufnr)
+        log('Buffer created. Number:', bufnr)
     else
         -- Buffer exists
         local window_position = vim.fn.bufwinnr(bufnr)
         if window_position == -1 then
             -- If not in window, show in window split
-            print('Buffer exists. Opening in split')
+            log('Buffer exists. Opening in split')
             vim.api.nvim_command(string.format('vs %s', buffer_name))
         end
     end
@@ -43,7 +43,7 @@ local function get_runner(command)
             end
         end
 
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "runner output: " })
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { 'runner output: ' })
         vim.fn.jobstart(command, {
             stdout_buffered = true,
             on_stdout = append_data,
@@ -59,7 +59,7 @@ local function read_config(path)
 end
 
 local function write_config(path, table)
-    Path:new(path):write(vim.fn.json_encode(table), "w")
+    Path:new(path):write(vim.fn.json_encode(table), 'w')
 end
 
 -- Load/Save settings
@@ -83,7 +83,7 @@ end
 
 local function show_settings()
     local config = load_settings(cache_config)
-    log("Config:", vim.fn.json_encode(config))
+    log('Config:', vim.fn.json_encode(config))
 end
 
 -- Binding to command
@@ -91,15 +91,15 @@ local function bind_command(settings)
     local pwd = vim.fn.getcwd()
     local command = settings[pwd]
     if not command then
-        print('Can\'t bind command. Pwd:', pwd)
+        -- log('Can\'t bind command. Pwd:', pwd)
         BindRunRunner = function()
-            print('Couldn\'t bind')
+            log('Couldn\'t bind')
         end
     else
         BindRunRunner = get_runner(command)
     end
 
-    vim.api.nvim_set_keymap('n', '<F5>', ":lua BindRunRunner()<CR>", opts)
+    vim.api.nvim_set_keymap('n', '<F5>', ':lua BindRunRunner()<CR>', opts)
 end
 
 local function bind()
@@ -109,23 +109,32 @@ end
 
 
 -- Creating commands
-vim.api.nvim_create_user_command("BindRunner", function()
-    print("BindRunner propt")
-    local command = vim.split(vim.fn.input "Command: ", " ")
-    print(" ")
+vim.api.nvim_create_user_command('BindRunner', function()
+    print('BindRunner propt')
+    local command = vim.split(vim.fn.input 'Command: ', ' ')
+    print(' ')
     local pwd = vim.fn.getcwd()
     local settings = save_settings(pwd, command)
     bind_command(settings)
 end, {})
 
-vim.api.nvim_create_user_command("RefreshRunner", function()
+vim.api.nvim_create_user_command('RefreshRunner', function()
     bind()
 end, {})
 
-vim.api.nvim_create_user_command("ShowRunnerConfig", function()
+vim.api.nvim_create_user_command('ShowRunnerConfig', function()
     show_settings()
 end, {})
 
+-- Autocommand
+vim.api.nvim_create_autocmd('DirChanged', {
+    group = vim.api.nvim_create_augroup('BindRunner', { clear = true }),
+    pattern = 'global',
+    callback = function ()
+        -- log('Directory has changed')
+        bind()
+    end
+})
 
 -- Auto bind on sourcing the file
 bind()
