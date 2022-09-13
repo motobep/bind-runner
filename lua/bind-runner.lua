@@ -111,7 +111,7 @@ end
 
 -- Creating commands
 vim.api.nvim_create_user_command('BindRunner', function()
-    print('BindRunner propt')
+    print('BindRunner prompt')
     local command = vim.split(vim.fn.input 'Command: ', ' ')
     local key = vim.fn.input 'Key: '
     print(' ')
