@@ -20,6 +20,14 @@ require('bind-runner')
 ```
 
 ## Usage
-Run __:BindRunner__ in vim command line and enter your command.
+Run __:BindRunner__ in vim command line, enter your command and the desired key that will trigger the command.<br>
+If the key is not specified, \<F5\> is used as a default one.<br>
+Example:
+```
+BindRunner prompt
+Command: echo hi
+Key:
+Default key is used: <F5>
+```
 
-Then hit \<F5\> to run your custom command.
+Then hit _the key_ to run your custom command.
